@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install:*)",
+      "Bash(pip index:*)",
+      "Bash(python style_analyzer.py)",
+      "Bash(python START.py)",
+      "Bash(python -c \"from dotenv import load_dotenv; import os; load_dotenv\\(\\); print\\(repr\\(os.getenv\\(''ANTHROPIC_API_KEY'', ''NOT FOUND''\\)\\)\\)\")",
+      "Bash(timeout 5)",
+      "WebSearch",
+      "Bash(python -c \"from style_analyzer import analyze_author; print\\(''style_analyzer OK''\\)\")",
+      "Bash(python -c \"from build_book import complete_book_pipeline; print\\(''build_book OK''\\)\")",
+      "Bash(python -c \"from app import app; print\\(''app OK''\\)\")",
+      "Bash(python -c \"from app import app; print\\(''OK''\\)\")",
+      "Bash(grep -n \"\\\\\\\\u\" style_analyzer.py book_generator.py epub_builder.py build_book.py kdp_optimizer.py app.py)",
+      "Bash(python -c \":*)",
+      "Bash(python app.py)",
+      "Bash(curl -s http://localhost:5000 -o /dev/null -w \"%{http_code}\")",
+      "Bash(taskkill /F /IM python.exe)",
+      "Bash(tskill python:*)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :5000)",
+      "Bash(cmd /c \"taskkill /PID 27976 /F & taskkill /PID 14748 /F & taskkill /PID 22396 /F\")",
+      "Bash(cmd /c \"netstat -ano | findstr :5000\")",
+      "Bash(python generate_chicago_book.py)",
+      "Bash(ls -lh \"C:\\\\Users\\\\ASUS\\\\Desktop\\\\kindle-book-maker\\\\output\\\\シカゴ市場ビジネス投資計画書\"*)",
+      "Bash(dir \"C:\\\\Users\\\\ASUS\\\\Desktop\\\\kindle-book-maker\\\\output\")",
+      "Read(//c/Users/ASUS/Desktop/**)",
+      "Bash(python -c \"import webbrowser; webbrowser.open\\(''http://localhost:5000''\\)\")",
+      "Bash(npm --version)",
+      "Bash(git --version)",
+      "Bash(npm install:*)",
+      "Bash(railway version:*)",
+      "Bash(powershell -Command \"Invoke-WebRequest -Uri ''https://github.com/railwayapp/cli/releases/latest/download/railway-x86_64-windows.exe'' -OutFile ''C:\\\\Users\\\\ASUS\\\\Desktop\\\\railway.exe'' -UseBasicParsing\")",
+      "Bash(python -c \"import pyngrok; print\\(''pyngrok ok''\\)\")",
+      "Bash(python START_PHONE.py)",
+      "Bash(python -c \"import time; time.sleep\\(2\\); import webbrowser; webbrowser.open\\(''http://localhost:5000''\\)\")"
+    ]
+  }
+}

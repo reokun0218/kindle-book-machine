@@ -1,0 +1,76 @@
+/* Kindle-safe CSS — KDP compatible */
+
+body {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1em;
+  line-height: 1.6;
+  text-align: justify;
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  text-align: center;
+  font-size: 1.8em;
+  font-weight: bold;
+  page-break-before: always;
+  margin-top: 3em;
+  margin-bottom: 0.5em;
+}
+
+h2 {
+  font-size: 1.3em;
+  font-weight: bold;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+p {
+  text-indent: 1.5em;
+  margin: 0;
+  padding: 0;
+}
+
+p.chapter-start {
+  text-indent: 0;
+  margin-top: 1em;
+}
+
+.title-page {
+  text-align: center;
+  margin-top: 5em;
+}
+
+.title-page h1 {
+  page-break-before: avoid;
+  margin-top: 0;
+  font-size: 2em;
+}
+
+.title-page .subtitle {
+  font-size: 1.1em;
+  font-style: italic;
+  margin-top: 0.5em;
+}
+
+.title-page .author {
+  font-size: 1em;
+  margin-top: 2em;
+}
+
+.copyright-page {
+  font-size: 0.85em;
+  margin-top: 8em;
+  text-align: center;
+}
+
+blockquote {
+  margin: 0 2em;
+  font-style: italic;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid #999;
+  margin: 1.5em 2em;
+}

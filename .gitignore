@@ -1,0 +1,16 @@
+# Secrets
+.env
+
+# Generated files (too large for GitHub)
+output/
+uploads/
+profiles/
+__pycache__/
+*.pyc
+*.pyo
+data/app.db
+*.zip
+
+# Python
+.venv/
+venv/

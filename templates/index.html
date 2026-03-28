@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kindle本メーカー — あゆみかん × AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ════ HEADER ════════════════════════════════════════════════════════ -->
+  <div class="header">
+    <div class="brand-pill">
+      <span class="dot"></span>
+      あゆみかん × Claude AI
+    </div>
+    <h1>Kindle本メーカー</h1>
+    <p class="tagline">あなたの文章をアップロードするだけ。<br/>AIがあなたの声で、完全な本を書き上げます。</p>
+    <p class="tagline-sub">ヨガ・瞑想・女性起業・スピリチュアル・SNS集客 — 全ジャンル対応</p>
+    <div class="lang-badge">🇯🇵 日本語 &nbsp;·&nbsp; 🇺🇸 English</div>
+  </div>
+
+  <!-- ════ STEP 1: 文体解析 ════════════════════════════════════════════ -->
+  <div class="section" id="section-style">
+    <div class="step-header">
+      <div class="step-num">1</div>
+      <div class="step-info">
+        <h2>著者の文体を設定する</h2>
+        <p>ブログ・メモ・過去の原稿をアップロード。AIがあなただけの文体を学習します。</p>
+      </div>
+    </div>
+
+    <!-- Saved profiles -->
+    {% if saved_profiles %}
+    <div class="saved-profiles-row">
+      <span class="saved-label">保存済み</span>
+      {% for p in saved_profiles %}
+      <button type="button" class="profile-chip" onclick="loadProfile('{{ p }}')">{{ p }}</button>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <form id="style-form">
+      <div class="field-group">
+        <label>文章サンプル <span class="hint">.txt / .md / .html（複数可）</span></label>
+        <div class="file-drop" id="file-drop">
+          <input type="file" id="samples" name="samples" accept=".txt,.md,.html" multiple required/>
+          <span class="file-drop-icon">📄</span>
+          <span class="file-drop-text">クリックまたはドラッグ＆ドロップ</span>
+          <span class="file-drop-hint">ブログ記事・章原稿・メモ — テキストが多いほど精度アップ</span>
+          <span class="file-count" id="file-count" style="display:none;"></span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>プロフィール名 <span class="hint">スペース不可、アンダーバー使用可</span></label>
+        <input type="text" id="profile_name" name="author_name"
+               placeholder="例：Ayumikan_Voice"/>
+      </div>
+
+      <button type="submit" class="btn-primary" id="analyze-btn">
+        🔍&nbsp; 文体を解析する
+      </button>
+    </form>
+
+    <div id="style-loading" class="loading-box" style="display:none;">
+      <div class="spinner"></div>
+      <div class="loading-text">
+        Claude AIが文体を解析中...<br/>
+        <span style="font-size:12px;opacity:0.6;">約30〜60秒かかります</span>
+      </div>
+    </div>
+
+    <div id="style-error" class="error" style="display:none;"></div>
+
+    <div id="style-result" style="display:none; margin-top:20px;">
+      <div class="success-badge">✅ 文体の解析が完了しました！</div>
+      <p class="preview-label">あなたの本はこんな文体で書かれます</p>
+      <div class="preview-text" id="preview-paragraph"></div>
+      <p class="profile-saved-msg" id="profile-saved-msg"></p>
+    </div>
+  </div>
+
+  <!-- ════ STEP 2: 本の詳細 ════════════════════════════════════════════ -->
+  <div class="section section-disabled" id="section-book">
+    <div class="step-header">
+      <div class="step-num">2</div>
+      <div class="step-info">
+        <h2>本の詳細を入力する</h2>
+        <p>テーマを決めて、ボタンを押すだけ。あとはAIにお任せ。</p>
+      </div>
+    </div>
+
+    <!-- Genre chips -->
+    <div class="genre-chips">
+      <span class="chip-label">クイック入力</span>
+      <button type="button" class="chip" data-genre="yoga">🧘 ヨガ</button>
+      <button type="button" class="chip" data-genre="meditation">✨ 瞑想</button>
+      <button type="button" class="chip" data-genre="business">💼 女性起業</button>
+      <button type="button" class="chip" data-genre="spiritual">🌙 スピリチュアル</button>
+      <button type="button" class="chip" data-genre="sns">📱 SNS集客</button>
+      <button type="button" class="chip" data-genre="wellness">🌸 ウェルネス</button>
+    </div>
+
+    <div class="field-group">
+      <label>本のタイトル</label>
+      <input type="text" id="title" placeholder="例：体と心がよみがえる朝の1分ヨガ"/>
+    </div>
+
+    <div class="field-group">
+      <label>テーマ・伝えたいメッセージ</label>
+      <textarea id="topic" rows="3"
+        placeholder="例：忙しい毎日でも、朝たった1分のヨガポーズを続けるだけで体の柔軟性が上がり、心が整い、一日のパフォーマンスが劇的に変わる実践ガイド。"></textarea>
+    </div>
+
+    <div class="field-group">
+      <label>ターゲット読者</label>
+      <input type="text" id="audience"
+             placeholder="例：忙しくて自分の時間がとれない30〜50代の女性、自信を取り戻したい人"/>
+    </div>
+
+    <div class="field-row">
+      <div class="field-group">
+        <label>章の数</label>
+        <select id="chapters">
+          <option value="2">2章</option>
+          <option value="3">3章</option>
+          <option value="5" selected>5章</option>
+          <option value="8">8章</option>
+          <option value="10">10章</option>
+          <option value="12">12章</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>1章あたりの語数</label>
+        <select id="words_per_chapter">
+          <option value="400">400語（短め）</option>
+          <option value="600">600語</option>
+          <option value="800">800語</option>
+          <option value="1000">1,000語</option>
+          <option value="1500" selected>1,500語</option>
+          <option value="2000">2,000語（長め）</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-group">
+        <label>言語</label>
+        <select id="language">
+          <option value="japanese" selected>🇯🇵 日本語</option>
+          <option value="english">🇺🇸 English</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>著者名（表紙に載せる）</label>
+        <input type="text" id="author_display_name"
+               placeholder="例：渡邉有優美 / あゆみかん"/>
+      </div>
+    </div>
+
+    <!-- ─── 著者の実話 ──────────────────────────────────────── -->
+    <div class="personalize-box">
+      <div class="personalize-header">
+        <span class="personalize-icon">✨</span>
+        <div>
+          <strong>著者の実話を入れる（推奨・超重要）</strong>
+          <p style="font-size:12px;color:var(--text-3);margin:2px 0 0;">ここに書いた実体験がそのまま本に反映されます。具体的な話ほど読者の心に届きます。</p>
+        </div>
+      </div>
+      <div class="field-group" style="margin-top:14px;">
+        <label>あなた自身のリアルなエピソード・体験談</label>
+        <textarea id="author_story" rows="4"
+          placeholder="例：私は3年前、離婚と同時に無職になり、子供2人を抱えて本当に何もかも失いました。でもその時にヨガに出会い、朝5時に起きて1人でやり始めたことが、今のすべての始まりでした..."></textarea>
+      </div>
+      <div class="field-group">
+        <label>読者に一番伝えたいメッセージ（本のテーマ）</label>
+        <input type="text" id="main_message"
+               placeholder="例：どんな状況からでも、自分を信じれば人生は変わる"/>
+      </div>
+    </div>
+
+    <!-- ─── 特典・アップセル（任意） ──────────────────────── -->
+    <div class="upsell-toggle" id="upsell-toggle">
+      <span>🎁 特典・アップセル情報を追加する（任意）</span>
+      <span class="toggle-arrow" id="upsell-arrow">▼</span>
+    </div>
+    <div class="upsell-box" id="upsell-box" style="display:none;">
+      <p style="font-size:12px;color:var(--text-3);margin:0 0 16px;">
+        入力した内容は本の最後に「特典ページ」として自動で追加されます。空欄はスキップされます。
+      </p>
+      <div class="field-group">
+        <label>🎁 特典はありますか？（タイトル）</label>
+        <input type="text" id="bonus_title"
+               placeholder="例：【無料特典】7日間で体が変わる朝ヨガ動画シリーズ"/>
+      </div>
+      <div class="field-group">
+        <label>特典の説明</label>
+        <textarea id="bonus_description" rows="2"
+          placeholder="例：この本を購入してくださった方限定で、著者が実際に毎朝行う7日間のヨガ動画を無料プレゼントしています。"></textarea>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label>📲 公式LINE URL（個人LINEへ誘導）</label>
+          <input type="text" id="line_url" placeholder="https://lin.ee/xxxxxxx"/>
+        </div>
+        <div class="field-group">
+          <label>🤝 個別相談・セッションURL</label>
+          <input type="text" id="consultation_url" placeholder="https://yoursite.com/session"/>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label>💎 アップセル商品（名前）</label>
+          <input type="text" id="upsell_product"
+                 placeholder="例：3ヶ月マンツーマンヨガプログラム"/>
+        </div>
+        <div class="field-group">
+          <label>🧲 リードマグネット（無料プレゼント）</label>
+          <input type="text" id="lead_magnet"
+                 placeholder="例：体が硬い人向け「1週間開脚チャレンジ」PDF"/>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-primary btn-generate" id="generate-btn" disabled>
+      🚀&nbsp; 本を生成する
+    </button>
+    <p style="text-align:center; font-size:12px; color:var(--text-3); margin-top:10px;">
+      生成には3〜10分かかります（Claude AIが章ごとに執筆）
+    </p>
+  </div>
+
+  <!-- ════ PROGRESS ════════════════════════════════════════════════════ -->
+  <div class="section" id="section-progress" style="display:none;">
+    <div class="step-header">
+      <div class="step-num" style="background:linear-gradient(135deg,#22d3ee,#8b5cf6);">✍</div>
+      <div class="step-info">
+        <h2>執筆中...</h2>
+        <p>AIが章ごとにあなたの声で書いています。しばらくお待ちください。</p>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span class="progress-pct" id="progress-pct">0%</span>
+        <span class="progress-msg" id="progress-msg">準備中...</span>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="progress-steps">
+      <div class="progress-step" id="pstep-1">📋 アウトライン</div>
+      <div class="progress-step" id="pstep-2">✍️ 序文・各章</div>
+      <div class="progress-step" id="pstep-3">📄 Word作成</div>
+      <div class="progress-step" id="pstep-4">📋 KDPシート</div>
+    </div>
+  </div>
+
+  <!-- ════ RESULTS ════════════════════════════════════════════════════ -->
+  <div class="section section-results" id="section-results" style="display:none;">
+    <p class="results-title">🎉 本が完成しました！</p>
+    <p class="results-subtitle">Kindle Direct Publishingにアップロードする準備ができています</p>
+
+    <div class="stat-boxes">
+      <div class="stat-box">
+        <span class="num" id="stat-words">—</span>
+        <span class="lbl">総語数</span>
+      </div>
+      <div class="stat-box">
+        <span class="num" id="stat-pages">—</span>
+        <span class="lbl">推定ページ数</span>
+      </div>
+      <div class="stat-box">
+        <span class="num" id="stat-time">—</span>
+        <span class="lbl">読書時間</span>
+      </div>
+    </div>
+
+    <div class="download-buttons">
+      <a href="/download/docx" class="btn-primary btn-download">
+        📄&nbsp; Word（DOCX）をダウンロード
+      </a>
+      <a href="/download/kdp_sheet" class="btn-secondary btn-download">
+        📋&nbsp; KDPシートをダウンロード
+      </a>
+    </div>
+
+    <div class="divider"></div>
+
+    <p class="preview-label">📖 第1章プレビュー</p>
+    <div class="preview-text" id="chapter-preview"></div>
+
+    <button class="btn-secondary" id="reset-btn" style="margin-top:20px;">
+      🔄&nbsp; 別の本を作る
+    </button>
+  </div>
+
+  <!-- ════ ERROR ═══════════════════════════════════════════════════════ -->
+  <div class="error" id="gen-error" style="display:none;">
+    <strong>エラーが発生しました</strong>
+    <p id="gen-error-msg" style="margin-top:6px;"></p>
+    <button class="btn-secondary" id="retry-btn" style="margin-top:14px; max-width:200px;">
+      🔄 やり直す
+    </button>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer-credit">
+  <p>CREATED BY <strong>渡邉有優美</strong> × Claude AI &nbsp;|&nbsp; Kindle本メーカー</p>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+// GENRE PRESETS
+// ══════════════════════════════════════════════════
+const GENRES = {
+  yoga: {
+    title: "体と心がよみがえる朝の1分ヨガ",
+    topic: "忙しい毎日でも、朝たった1分のヨガポーズを続けるだけで体の柔軟性が上がり、心が整い、一日のパフォーマンスが劇的に変わる実践ガイド。",
+    audience: "運動不足を感じている30〜50代の女性、忙しくて時間がない人"
+  },
+  meditation: {
+    title: "マントラで人生が変わる — 心を整える瞑想の秘密",
+    topic: "マントラと瞑想を日常に取り入れることで、ストレスが消え、直感が冴え、引き寄せの力が高まる。初心者でも今日からできる瞑想実践書。",
+    audience: "心のざわつきを感じている女性、瞑想を始めたいけれど難しそうと思っている人"
+  },
+  business: {
+    title: "好きなことで稼ぐ女性起業家の教科書",
+    topic: "海外在住でもSNSとオンラインスクールで月商100万を達成した方法。女性が自分のスキルをビジネスにして経済的自由を手に入れる全ステップ。",
+    audience: "自分のスキルを収入にしたい女性、副業・起業に興味がある30〜45歳の女性"
+  },
+  spiritual: {
+    title: "チャクラと開脚 — 体を開くと人生が開く",
+    topic: "体の柔軟性とスピリチュアルな開放は繋がっている。ギネス世界記録保持者が教える、開脚と瞑想で運気と体力を同時に高める実践書。",
+    audience: "ヨガやスピリチュアルに興味がある女性、人生を変えたいと感じている人"
+  },
+  sns: {
+    title: "フォロワー0から22万人 — SNSで人生を変える方法",
+    topic: "機械音痴でもSNSで発信を続けることで、フォロワーが増え、ビジネスが生まれ、世界中に仲間ができる。実体験をもとにしたSNS集客完全マニュアル。",
+    audience: "SNS発信に挑戦したい女性、フォロワーを増やしてビジネスに繋げたい人"
+  },
+  wellness: {
+    title: "体も心も若返る — 毎日1分の習慣革命",
+    topic: "年齢を重ねるほど輝く体と心を手に入れるために、毎日1分だけでいい。ヨガインストラクター歴20年が厳選した、今日から始められる若返り習慣集。",
+    audience: "年齢とともに体力や自信の低下を感じている40〜60代の女性"
+  }
+};
+
+document.querySelectorAll(".chip[data-genre]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const g = GENRES[btn.dataset.genre];
+    if (!g) return;
+    document.getElementById("title").value    = g.title;
+    document.getElementById("topic").value    = g.topic;
+    document.getElementById("audience").value = g.audience;
+    document.querySelectorAll(".chip").forEach(c => c.classList.remove("chip-active"));
+    btn.classList.add("chip-active");
+  });
+});
+
+// ══════════════════════════════════════════════════
+// FILE DROP
+// ══════════════════════════════════════════════════
+const fileDrop  = document.getElementById("file-drop");
+const fileInput = document.getElementById("samples");
+const fileCount = document.getElementById("file-count");
+
+fileInput.addEventListener("change", updateFileCount);
+
+["dragenter","dragover"].forEach(e =>
+  fileDrop.addEventListener(e, ev => { ev.preventDefault(); fileDrop.classList.add("dragover"); })
+);
+["dragleave","drop"].forEach(e =>
+  fileDrop.addEventListener(e, ev => { ev.preventDefault(); fileDrop.classList.remove("dragover"); })
+);
+fileDrop.addEventListener("drop", ev => {
+  fileInput.files = ev.dataTransfer.files;
+  updateFileCount();
+});
+
+function updateFileCount() {
+  const n = fileInput.files.length;
+  if (n > 0) {
+    fileCount.style.display = "inline-block";
+    fileCount.textContent   = `${n}ファイル選択済み`;
+  } else {
+    fileCount.style.display = "none";
+  }
+}
+
+// ══════════════════════════════════════════════════
+// UPSELL TOGGLE
+// ══════════════════════════════════════════════════
+document.getElementById("upsell-toggle").addEventListener("click", () => {
+  const box   = document.getElementById("upsell-box");
+  const arrow = document.getElementById("upsell-arrow");
+  const open  = box.style.display === "none";
+  box.style.display  = open ? "block" : "none";
+  arrow.textContent  = open ? "▲" : "▼";
+});
+
+// ══════════════════════════════════════════════════
+// SAVED PROFILES
+// ══════════════════════════════════════════════════
+let currentAuthorName = "";
+
+function loadProfile(name) {
+  document.getElementById("profile_name").value = name;
+  currentAuthorName = name;
+  document.querySelectorAll(".profile-chip").forEach(c => {
+    c.classList.toggle("active", c.textContent.trim() === name);
+  });
+  showStyleSuccess(`プロフィール「${name}」を読み込みました`);
+  enableSection2();
+}
+
+// ══════════════════════════════════════════════════
+// STYLE FORM
+// ══════════════════════════════════════════════════
+document.getElementById("style-form").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const files      = fileInput.files;
+  const authorName = document.getElementById("profile_name").value.trim();
+
+  if (!files.length)  return showStyleError("文章サンプルを選択してください。");
+  if (!authorName)    return showStyleError("プロフィール名を入力してください。");
+
+  const fd = new FormData();
+  for (const f of files) fd.append("samples", f);
+  fd.append("author_name", authorName);
+
+  showStyleLoading();
+  try {
+    const res  = await fetch("/analyze-style", { method: "POST", body: fd });
+    const data = await res.json();
+    if (data.success) {
+      currentAuthorName = data.author_name;
+      showStyleSuccess(data.message);
+      document.getElementById("preview-paragraph").textContent = data.preview_paragraph;
+      enableSection2();
+    } else {
+      showStyleError(data.error || "解析に失敗しました。");
+    }
+  } catch (_) {
+    showStyleError("ネットワークエラー。サーバーが起動しているか確認してください。");
+  }
+});
+
+// ══════════════════════════════════════════════════
+// GENERATE BOOK
+// ══════════════════════════════════════════════════
+let pollInterval = null;
+
+document.getElementById("generate-btn").addEventListener("click", async () => {
+  const title   = document.getElementById("title").value.trim();
+  const topic   = document.getElementById("topic").value.trim();
+  const audience= document.getElementById("audience").value.trim();
+
+  if (!title)            return alert("本のタイトルを入力してください。");
+  if (!topic)            return alert("テーマ・メッセージを入力してください。");
+  if (!audience)         return alert("ターゲット読者を入力してください。");
+  if (!currentAuthorName)return alert("先にSTEP 1で文体を解析してください。");
+
+  showProgress();
+
+  try {
+    const res  = await fetch("/generate-book", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title, topic, audience,
+        chapters:          parseInt(document.getElementById("chapters").value),
+        words_per_chapter: parseInt(document.getElementById("words_per_chapter").value),
+        language:          document.getElementById("language").value,
+        author_name:       currentAuthorName,
+        author_display_name: document.getElementById("author_display_name").value.trim() || currentAuthorName,
+        // personalization
+        author_story:      document.getElementById("author_story").value.trim(),
+        main_message:      document.getElementById("main_message").value.trim(),
+        // upsell/bonus (optional)
+        bonus_title:       document.getElementById("bonus_title").value.trim(),
+        bonus_description: document.getElementById("bonus_description").value.trim(),
+        line_url:          document.getElementById("line_url").value.trim(),
+        consultation_url:  document.getElementById("consultation_url").value.trim(),
+        upsell_product:    document.getElementById("upsell_product").value.trim(),
+        lead_magnet:       document.getElementById("lead_magnet").value.trim(),
+      })
+    });
+    const data = await res.json();
+    if (data.success) startPolling();
+    else showGenError(data.error || "生成を開始できませんでした。");
+  } catch (_) {
+    showGenError("ネットワークエラー。");
+  }
+});
+
+// ══════════════════════════════════════════════════
+// POLLING
+// ══════════════════════════════════════════════════
+function startPolling() {
+  if (pollInterval) clearInterval(pollInterval);
+  pollInterval = setInterval(pollStatus, 3000);
+}
+
+async function pollStatus() {
+  try {
+    const data = await fetch("/status").then(r => r.json());
+    const pct  = data.progress || 0;
+
+    document.getElementById("progress-bar").style.width = pct + "%";
+    document.getElementById("progress-pct").textContent = pct + "%";
+    document.getElementById("progress-msg").textContent = data.message || "";
+
+    // Update step indicators
+    updateProgressSteps(pct);
+
+    if (data.error) { clearInterval(pollInterval); showGenError(data.error); return; }
+    if (!data.running && pct >= 100) { clearInterval(pollInterval); showResults(); }
+  } catch (_) {}
+}
+
+function updateProgressSteps(pct) {
+  const steps = [
+    { id: "pstep-1", from: 0,  to: 15  },
+    { id: "pstep-2", from: 15, to: 75  },
+    { id: "pstep-3", from: 75, to: 90  },
+    { id: "pstep-4", from: 90, to: 100 },
+  ];
+  steps.forEach(s => {
+    const el = document.getElementById(s.id);
+    if (pct >= s.to)       { el.classList.add("done");   el.classList.remove("active"); }
+    else if (pct >= s.from){ el.classList.add("active"); el.classList.remove("done");  }
+    else                   { el.classList.remove("active","done"); }
+  });
+}
+
+async function showResults() {
+  document.getElementById("section-progress").style.display = "none";
+
+  // First: show stats directly from status (always available, no path issues)
+  try {
+    const status = await fetch("/status").then(r => r.json());
+    const s = (status.output_files || {}).stats || {};
+    if (s.total_words > 0) {
+      document.getElementById("stat-words").textContent = (s.total_words).toLocaleString("ja-JP");
+      document.getElementById("stat-pages").textContent = (s.estimated_pages||0).toLocaleString("ja-JP");
+      const readMin = s.language === "japanese"
+        ? Math.round(s.total_words / 400)   // Japanese: ~400 chars/min
+        : Math.round(s.total_words / 200);   // English: ~200 words/min
+      document.getElementById("stat-time").textContent = readMin + "分";
+    }
+    // Show chapter preview from stats too
+    if (s.chapter_preview) {
+      document.getElementById("chapter-preview").textContent = s.chapter_preview;
+    }
+  } catch(_) {}
+
+  // Second: also try /preview for richer chapter text
+  try {
+    const data = await fetch("/preview").then(r => r.json());
+    if (data.success && data.chapter_preview) {
+      document.getElementById("chapter-preview").textContent = data.chapter_preview;
+      // Override stats if available from file
+      const s = data.stats || {};
+      if (s.total_words > 0) {
+        document.getElementById("stat-words").textContent = (s.total_words).toLocaleString("ja-JP");
+        document.getElementById("stat-pages").textContent = (s.estimated_pages||0).toLocaleString("ja-JP");
+        const readMin = s.language === "japanese"
+          ? Math.round(s.total_words / 400)
+          : Math.round(s.total_words / 200);
+        document.getElementById("stat-time").textContent = readMin + "分";
+      }
+    }
+  } catch(_) {}
+
+  const r = document.getElementById("section-results");
+  r.style.display = "block";
+  r.scrollIntoView({ behavior: "smooth" });
+}
+
+// ══════════════════════════════════════════════════
+// RESET
+// ══════════════════════════════════════════════════
+["reset-btn","retry-btn"].forEach(id => {
+  document.getElementById(id)?.addEventListener("click", async () => {
+    if (pollInterval) clearInterval(pollInterval);
+    // Clear stuck running state on server
+    await fetch("/reset-status", { method: "POST" }).catch(() => {});
+    ["section-progress","section-results","gen-error"].forEach(id => {
+      document.getElementById(id).style.display = "none";
+    });
+    document.getElementById("progress-bar").style.width = "0%";
+    document.getElementById("progress-pct").textContent = "0%";
+    document.querySelectorAll(".progress-step").forEach(s => s.classList.remove("active","done"));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+});
+
+// ══════════════════════════════════════════════════
+// UI HELPERS
+// ══════════════════════════════════════════════════
+const analyzeBtn   = document.getElementById("analyze-btn");
+const styleLoading = document.getElementById("style-loading");
+const styleError   = document.getElementById("style-error");
+const styleResult  = document.getElementById("style-result");
+
+function showStyleLoading() {
+  analyzeBtn.disabled = true;
+  analyzeBtn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;"></div>&nbsp; 解析中...';
+  styleLoading.style.display = "flex";
+  styleError.style.display   = "none";
+  styleResult.style.display  = "none";
+}
+
+function showStyleSuccess(msg) {
+  analyzeBtn.disabled = false;
+  analyzeBtn.innerHTML = "🔍&nbsp; 文体を解析する";
+  styleLoading.style.display = "none";
+  styleError.style.display   = "none";
+  styleResult.style.display  = "block";
+  document.getElementById("profile-saved-msg").textContent = msg || "";
+}
+
+function showStyleError(msg) {
+  analyzeBtn.disabled = false;
+  analyzeBtn.innerHTML = "🔍&nbsp; 文体を解析する";
+  styleLoading.style.display = "none";
+  styleError.style.display   = "block";
+  styleError.innerHTML = `<strong>⚠️ エラー</strong><br/>${msg}`;
+  styleResult.style.display  = "none";
+}
+
+function enableSection2() {
+  document.getElementById("section-book").classList.remove("section-disabled");
+  document.getElementById("generate-btn").disabled = false;
+}
+
+function showProgress() {
+  document.getElementById("section-progress").style.display = "block";
+  document.getElementById("section-results").style.display  = "none";
+  document.getElementById("gen-error").style.display        = "none";
+  document.getElementById("progress-bar").style.width = "2%";
+  document.getElementById("section-progress").scrollIntoView({ behavior: "smooth" });
+}
+
+function showGenError(msg) {
+  document.getElementById("section-progress").style.display = "none";
+  const el = document.getElementById("gen-error");
+  el.style.display = "block";
+  document.getElementById("gen-error-msg").textContent = msg;
+}
+</script>
+
+</body>
+</html>

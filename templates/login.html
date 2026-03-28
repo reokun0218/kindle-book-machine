@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ログイン — Kindle本メーカー</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #07080f; --surface: #111425; --border: rgba(255,255,255,0.07);
+      --accent: #8b5cf6; --accent-2: #a78bfa; --pink: #ec4899;
+      --text: #f1f3f9; --text-2: #9ca3af; --text-3: #4b5563;
+      --grad: linear-gradient(135deg, #8b5cf6, #ec4899);
+      --radius: 12px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      font-family: "Noto Sans JP", system-ui, sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      top: -20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 700px; height: 500px;
+      background: radial-gradient(ellipse, rgba(139,92,246,0.09) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+      z-index: 1;
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .logo-icon { font-size: 36px; display: block; margin-bottom: 10px; }
+    .logo h1 {
+      font-size: 22px; font-weight: 800;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .logo p { font-size: 13px; color: var(--text-3); margin-top: 4px; }
+
+    /* Tabs */
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: #0d0f1a;
+      border-radius: 8px;
+      padding: 4px;
+      margin-bottom: 28px;
+      gap: 4px;
+    }
+    .tab {
+      padding: 9px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-3);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      background: transparent;
+      font-family: inherit;
+    }
+    .tab.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    }
+
+    /* Form */
+    .field { margin-bottom: 16px; }
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 7px;
+    }
+    input {
+      width: 100%;
+      padding: 11px 14px;
+      background: #0d0f1a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(139,92,246,0.12); }
+
+    .btn {
+      width: 100%;
+      padding: 13px;
+      background: var(--grad);
+      color: #fff;
+      border: none;
+      border-radius: 9px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      margin-top: 20px;
+      transition: opacity 0.2s, transform 0.15s;
+      box-shadow: 0 4px 20px rgba(139,92,246,0.3);
+    }
+    .btn:hover { opacity: 0.92; transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .error-msg {
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.25);
+      color: #fca5a5;
+      padding: 11px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-top: 14px;
+      display: none;
+    }
+    .divider {
+      text-align: center;
+      color: var(--text-3);
+      font-size: 12px;
+      margin: 20px 0;
+      position: relative;
+    }
+    .divider::before, .divider::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 38%;
+      height: 1px;
+      background: var(--border);
+    }
+    .divider::before { left: 0; }
+    .divider::after  { right: 0; }
+
+    .free-badge {
+      background: rgba(139,92,246,0.1);
+      border: 1px solid rgba(139,92,246,0.25);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-top: 18px;
+    }
+    .free-badge p { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+    .free-badge strong { color: var(--accent-2); }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <span class="logo-icon">📚</span>
+    <h1>Kindle本メーカー</h1>
+    <p>あゆみかん × Claude AI</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-login" onclick="switchTab('login')">ログイン</button>
+    <button class="tab"        id="tab-register" onclick="switchTab('register')">新規登録</button>
+  </div>
+
+  <!-- Login form -->
+  <div id="form-login">
+    <div class="field">
+      <label>メールアドレス</label>
+      <input type="email" id="login-email" placeholder="your@email.com" autocomplete="email"/>
+    </div>
+    <div class="field">
+      <label>パスワード</label>
+      <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"/>
+    </div>
+    <button class="btn" id="login-btn" onclick="doLogin()">ログイン →</button>
+    <div class="error-msg" id="login-error"></div>
+  </div>
+
+  <!-- Register form -->
+  <div id="form-register" style="display:none;">
+    <div class="field">
+      <label>お名前（ニックネームでも可）</label>
+      <input type="text" id="reg-name" placeholder="例：あゆみかん"/>
+    </div>
+    <div class="field">
+      <label>メールアドレス</label>
+      <input type="email" id="reg-email" placeholder="your@email.com" autocomplete="email"/>
+    </div>
+    <div class="field">
+      <label>パスワード（6文字以上）</label>
+      <input type="password" id="reg-pass" placeholder="••••••••" autocomplete="new-password"/>
+    </div>
+    <button class="btn" id="reg-btn" onclick="doRegister()">無料で始める →</button>
+    <div class="error-msg" id="reg-error"></div>
+
+    <div class="free-badge">
+      <p>🎉 <strong>無料プラン</strong>でできること：<br/>
+      文体解析 ✅ &nbsp; 本のプレビュー（2章分）✅<br/>
+      EPUBダウンロード 🔒 &nbsp; KDPシート 🔒</p>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(tab) {
+  document.getElementById("form-login").style.display    = tab === "login"    ? "block" : "none";
+  document.getElementById("form-register").style.display = tab === "register" ? "block" : "none";
+  document.getElementById("tab-login").classList.toggle("active",    tab === "login");
+  document.getElementById("tab-register").classList.toggle("active", tab === "register");
+}
+
+async function doLogin() {
+  const btn = document.getElementById("login-btn");
+  const err = document.getElementById("login-error");
+  btn.disabled = true; btn.textContent = "ログイン中...";
+  err.style.display = "none";
+
+  const res  = await fetch("/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email:    document.getElementById("login-email").value.trim(),
+      password: document.getElementById("login-pass").value
+    })
+  });
+  const data = await res.json();
+  if (data.success) {
+    window.location.href = "/";
+  } else {
+    err.textContent = data.error;
+    err.style.display = "block";
+    btn.disabled = false; btn.textContent = "ログイン →";
+  }
+}
+
+async function doRegister() {
+  const btn = document.getElementById("reg-btn");
+  const err = document.getElementById("reg-error");
+  btn.disabled = true; btn.textContent = "登録中...";
+  err.style.display = "none";
+
+  const res  = await fetch("/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name:     document.getElementById("reg-name").value.trim(),
+      email:    document.getElementById("reg-email").value.trim(),
+      password: document.getElementById("reg-pass").value
+    })
+  });
+  const data = await res.json();
+  if (data.success) {
+    window.location.href = "/";
+  } else {
+    err.textContent = data.error;
+    err.style.display = "block";
+    btn.disabled = false; btn.textContent = "無料で始める →";
+  }
+}
+
+// Enter key support
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    if (document.getElementById("form-login").style.display !== "none") doLogin();
+    else doRegister();
+  }
+});
+</script>
+</body>
+</html>
