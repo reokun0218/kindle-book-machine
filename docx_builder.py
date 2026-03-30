@@ -246,7 +246,7 @@ def create_docx(book_data, output_filename):
     credit_p = doc.add_paragraph()
     credit_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     credit_p.paragraph_format.space_before = Pt(48)
-    credit_run = credit_p.add_run("CREATED BY 渡邉有優美 × Claude AI")
+    credit_run = credit_p.add_run("CREATED BY 渡邉有優美")
     _set_font(credit_run, size=9, color=(120, 100, 160))
 
     doc.add_page_break()
