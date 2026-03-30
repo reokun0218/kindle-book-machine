@@ -1,6 +1,9 @@
 # epub_builder.py — builds the EPUB file using ebooklib
 import sys
-sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 import os
 import re
 import uuid

@@ -1,6 +1,9 @@
 # database.py — user accounts, subscriptions, usage tracking
 import sys
-sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 import sqlite3
 from pathlib import Path
 from datetime import datetime

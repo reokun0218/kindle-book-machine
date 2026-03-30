@@ -1,6 +1,9 @@
 # build_book.py — orchestrates the full book pipeline
 import sys
-sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 from book_generator import generate_full_book
 from docx_builder import create_docx
 from kdp_optimizer import generate_kdp_sheet

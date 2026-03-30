@@ -1,6 +1,9 @@
 # app.py — Flask web server with auth + subscription gating
 import sys
-sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 import os
 import json
 import threading
@@ -485,10 +488,17 @@ def run_generation(book_details, author_name, user_id):
 # RUN
 # ══════════════════════════════════════════════════════════════════════════
 
+def startup():
+    """Create folders and initialise DB — works both locally and on Railway."""
+    for folder in ["uploads", "output", "profiles", "data"]:
+        Path(folder).mkdir(exist_ok=True)
+    from database import init_db
+    init_db()
+
+# Always run startup (even when imported by gunicorn / Railway)
+startup()
+
 if __name__ == "__main__":
-    UPLOAD_FOLDER.mkdir(exist_ok=True)
-    OUTPUT_FOLDER.mkdir(exist_ok=True)
-    Path("profiles").mkdir(exist_ok=True)
     port = int(os.getenv("PORT", 5000))
-    debug = os.getenv("RAILWAY_ENVIRONMENT") is None  # debug off on Railway
+    debug = os.getenv("RAILWAY_ENVIRONMENT") is None
     app.run(host="0.0.0.0", debug=debug, port=port, use_reloader=False)

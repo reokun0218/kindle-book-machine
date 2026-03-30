@@ -1,6 +1,9 @@
 # docx_builder.py — builds a beautifully designed Word .docx file from book_data
 import sys
-sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 from pathlib import Path
 from datetime import datetime
 from docx import Document

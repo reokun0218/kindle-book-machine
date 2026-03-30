@@ -34,7 +34,8 @@
       "Bash(powershell -Command \"Invoke-WebRequest -Uri ''https://github.com/railwayapp/cli/releases/latest/download/railway-x86_64-windows.exe'' -OutFile ''C:\\\\Users\\\\ASUS\\\\Desktop\\\\railway.exe'' -UseBasicParsing\")",
       "Bash(python -c \"import pyngrok; print\\(''pyngrok ok''\\)\")",
       "Bash(python START_PHONE.py)",
-      "Bash(python -c \"import time; time.sleep\\(2\\); import webbrowser; webbrowser.open\\(''http://localhost:5000''\\)\")"
+      "Bash(python -c \"import time; time.sleep\\(2\\); import webbrowser; webbrowser.open\\(''http://localhost:5000''\\)\")",
+      "Bash(grep -l \"sys.stdout.reconfigure\" *.py)"
     ]
   }
 }

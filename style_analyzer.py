@@ -1,6 +1,9 @@
 # style_analyzer.py — reads writing samples, extracts author style
 import sys
-sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 import os
 import json
 import re

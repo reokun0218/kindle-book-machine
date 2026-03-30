@@ -1,6 +1,9 @@
 # kdp_optimizer.py — creates the Amazon KDP upload sheet
 import sys
-sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 from datetime import datetime
 from pathlib import Path
 

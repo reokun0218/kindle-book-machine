@@ -1,6 +1,9 @@
 # book_generator.py — writes a complete book chapter by chapter using Claude API
 import sys
-sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 import os
 import json
 import time
