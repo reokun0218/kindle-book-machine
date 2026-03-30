@@ -47,13 +47,38 @@
 
     <form id="style-form">
       <div class="field-group">
-        <label>文章サンプル <span class="hint">.txt / .md / .html（複数可）</span></label>
-        <div class="file-drop" id="file-drop">
-          <input type="file" id="samples" name="samples" accept=".txt,.md,.html" multiple required/>
-          <span class="file-drop-icon">📄</span>
-          <span class="file-drop-text">クリックまたはドラッグ＆ドロップ</span>
-          <span class="file-drop-hint">ブログ記事・章原稿・メモ — テキストが多いほど精度アップ</span>
-          <span class="file-count" id="file-count" style="display:none;"></span>
+        <label>文章サンプル <span class="hint">ファイルまたはテキスト貼り付け（どちらでもOK）</span></label>
+
+        <!-- Tab switcher -->
+        <div class="sample-tabs">
+          <button type="button" class="sample-tab active" id="tab-file" onclick="switchTab('file')">📁 ファイルをアップロード</button>
+          <button type="button" class="sample-tab" id="tab-paste" onclick="switchTab('paste')">✏️ テキストを貼り付ける</button>
+        </div>
+
+        <!-- File upload tab -->
+        <div id="tab-file-content">
+          <div class="file-drop" id="file-drop">
+            <input type="file" id="samples" name="samples" accept=".txt,.md,.html" multiple/>
+            <span class="file-drop-icon">📄</span>
+            <span class="file-drop-text">クリックまたはドラッグ＆ドロップ</span>
+            <span class="file-drop-hint">.txt / .md / .html — ブログ記事・章原稿・メモ</span>
+            <span class="file-count" id="file-count" style="display:none;"></span>
+          </div>
+        </div>
+
+        <!-- Paste text tab -->
+        <div id="tab-paste-content" style="display:none;">
+          <textarea id="paste-text" rows="8"
+            placeholder="ここにSNS投稿、ブログ記事、LINE文章など、あなたの書いたテキストをそのまま貼り付けてください。
+
+例：
+・Instagramのキャプション
+・アメブロ・note記事
+・LINEで送ったメッセージ
+・自己紹介文
+
+500文字以上あると精度が上がります✨"></textarea>
+          <p class="paste-hint">💡 SNSの投稿をコピーして貼り付けるだけでOKです</p>
         </div>
       </div>
 
@@ -369,6 +394,17 @@ document.querySelectorAll(".chip[data-genre]").forEach(btn => {
 });
 
 // ══════════════════════════════════════════════════
+// TAB SWITCHER
+// ══════════════════════════════════════════════════
+function switchTab(tab) {
+  const isFile = tab === 'file';
+  document.getElementById('tab-file-content').style.display  = isFile ? 'block' : 'none';
+  document.getElementById('tab-paste-content').style.display = isFile ? 'none'  : 'block';
+  document.getElementById('tab-file').classList.toggle('active', isFile);
+  document.getElementById('tab-paste').classList.toggle('active', !isFile);
+}
+
+// ══════════════════════════════════════════════════
 // FILE DROP
 // ══════════════════════════════════════════════════
 const fileDrop  = document.getElementById("file-drop");
@@ -432,12 +468,21 @@ document.getElementById("style-form").addEventListener("submit", async e => {
 
   const files      = fileInput.files;
   const authorName = document.getElementById("profile_name").value.trim();
+  const pasteText  = document.getElementById("paste-text").value.trim();
+  const activeTab  = document.getElementById("tab-file").classList.contains("active") ? "file" : "paste";
 
-  if (!files.length)  return showStyleError("文章サンプルを選択してください。");
-  if (!authorName)    return showStyleError("プロフィール名を入力してください。");
+  if (activeTab === "file" && !files.length) return showStyleError("文章サンプルを選択してください。");
+  if (activeTab === "paste" && !pasteText)   return showStyleError("テキストを貼り付けてください。");
+  if (!authorName) return showStyleError("プロフィール名を入力してください。");
 
   const fd = new FormData();
-  for (const f of files) fd.append("samples", f);
+  if (activeTab === "file") {
+    for (const f of files) fd.append("samples", f);
+  } else {
+    // Convert pasted text to a virtual file blob
+    const blob = new Blob([pasteText], { type: "text/plain" });
+    fd.append("samples", blob, "pasted_sample.txt");
+  }
   fd.append("author_name", authorName);
 
   showStyleLoading();
